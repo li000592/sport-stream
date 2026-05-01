@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #E8173A;
+    --red-dark: #b01029;
+    --gold: #F5C518;
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #18181f;
+    --card: #1c1c25;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f0;
+    --muted: #888899;
+    --live: #22c55e;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(10,10,15,0.98), rgba(10,10,15,0.85));
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    height: 60px;
+    gap: 2rem;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--red);
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--text); }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+
+  .nav-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .btn-pro {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 7px 18px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.5px;
+    transition: background 0.2s;
+  }
+  .btn-pro:hover { background: var(--red-dark); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a0510 50%, #0a0a0f 100%);
+    padding: 3rem 2rem 2rem;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(232,23,58,0.12) 0%, transparent 60%);
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 900px;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(232,23,58,0.15);
+    border: 1px solid rgba(232,23,58,0.3);
+    color: #ff6b87;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--live);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    letter-spacing: 3px;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .hero h1 em {
+    color: var(--red);
+    font-style: normal;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 480px;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn-hero {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 11px 28px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-hero:hover { background: var(--red-dark); }
+  .btn-hero-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-hero-ghost:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.35); }
+
+  .hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--red);
+    letter-spacing: 1px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* SPORT FILTER */
+  .sport-filter {
+    padding: 1.5rem 2rem 0.5rem;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sport-filter::-webkit-scrollbar { display: none; }
+
+  .sport-pill {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--muted);
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sport-pill:hover { background: var(--card); color: var(--text); }
+  .sport-pill.active {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+  .sport-emoji { font-size: 14px; }
+
+  /* SECTION */
+  .section {
+    padding: 1.5rem 2rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  .section-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  .tag-live {
+    background: rgba(34,197,94,0.15);
+    color: var(--live);
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+  .tag-upcoming {
+    background: rgba(245,197,24,0.12);
+    color: var(--gold);
+    border: 1px solid rgba(245,197,24,0.25);
+  }
+
+  /* MATCH CARDS */
+  .match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .match-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+  }
+  .match-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .match-card:hover .card-overlay { opacity: 1; }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(232,23,58,0.06);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+
+  .card-header {
+    padding: 12px 14px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-category {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--live);
+  }
+  .upcoming-badge {
+    font-size: 10px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .card-teams {
+    padding: 8px 14px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .team-badge-wrap {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .team-badge-wrap img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+  .team-name {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .vs-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .vs-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .vs-time {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+
+  .card-footer {
+    padding: 8px 14px;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.2);
+  }
+  .stream-count {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .watch-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* LOADING / ERROR */
+  .loading-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .skeleton {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted);
+  }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 14px; }
+
+  /* PLAYER MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-hidden { display: none !important; }
+
+  .modal-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 700px;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+  }
+  .modal-close {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .player-wrap {
+    background: #000;
+    position: relative;
+    padding-top: 56.25%;
+  }
+  .player-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .player-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    gap: 8px;
+    font-size: 14px;
+  }
+  .player-icon { font-size: 2.5rem; }
+
+  .stream-list {
+    padding: 14px 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .stream-btn {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .stream-btn:hover, .stream-btn.active {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+
+  /* PRICING */
+  .pricing-section {
+    padding: 2rem 2rem 2.5rem;
+    background: var(--bg2);
+    border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+    margin-top: 1rem;
+  }
+  .pricing-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 3px;
+    margin-bottom: 0.25rem;
+  }
+  .pricing-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 1.5rem;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .price-card {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+  }
+  .price-card.featured {
+    border-color: var(--red);
+    background: rgba(232,23,58,0.06);
+  }
+  .price-tag {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 3px 10px;
+    border-radius: 0 0 4px 4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .plan-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .plan-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .plan-period {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .plan-features {
+    list-style: none;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .plan-features li::before {
+    content: '✓ ';
+    color: var(--live);
+    font-weight: 700;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 2rem;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .sport-icons = { font-size: 16px; }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">SPORT<span>FLIX</span></div>
+  <ul class="nav-links">
+    <li><a class="active">Live Now</a></li>
+    <li><a>Schedule</a></li>
+    <li><a>Replays</a></li>
+    <li><a>Leagues</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="btn-pro" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Go PRO</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="live-dot"></span>
+      Live Sports Streaming
+    </div>
+    <h1>Watch Every<br><em>Game, Live.</em></h1>
+    <p>HD streams for football, basketball, tennis, MMA and more. No cable required. No blackouts. No excuses.</p>
+    <div class="hero-ctas">
+      <button class="btn-hero" onclick="document.getElementById('live').scrollIntoView({behavior:'smooth'})">▶ Watch Now — Free</button>
+      <button class="btn-hero-ghost" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">View Plans</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num" id="stat-live">—</div>
+        <div class="stat-label">Live Right Now</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat-today">—</div>
+        <div class="stat-label">Games Today</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">9+</div>
+        <div class="stat-label">Stream Sources</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">HD</div>
+        <div class="stat-label">Quality</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SPORT FILTER -->
+<div class="sport-filter" id="sport-filter">
+  <div class="sport-pill active" data-sport="all" onclick="filterSport('all', this)">All Sports</div>
+  <div class="sport-pill" data-sport="football" onclick="filterSport('football', this)"><span class="sport-emoji">⚽</span> Football</div>
+  <div class="sport-pill" data-sport="basketball" onclick="filterSport('basketball', this)"><span class="sport-emoji">🏀</span> Basketball</div>
+  <div class="sport-pill" data-sport="american-football" onclick="filterSport('american-football', this)"><span class="sport-emoji">🏈</span> NFL</div>
+  <div class="sport-pill" data-sport="tennis" onclick="filterSport('tennis', this)"><span class="sport-emoji">🎾</span> Tennis</div>
+  <div class="sport-pill" data-sport="baseball" onclick="filterSport('baseball', this)"><span class="sport-emoji">⚾</span> Baseball</div>
+  <div class="sport-pill" data-sport="mma" onclick="filterSport('mma', this)"><span class="sport-emoji">🥊</span> MMA/UFC</div>
+  <div class="sport-pill" data-sport="hockey" onclick="filterSport('hockey', this)"><span class="sport-emoji">🏒</span> Hockey</div>
+  <div class="sport-pill" data-sport="motorsport" onclick="filterSport('motorsport', this)"><span class="sport-emoji">🏎</span> F1</div>
+</div>
+
+<!-- LIVE SECTION -->
+<div class="section" id="live">
+  <div class="section-header">
+    <div class="section-title">Live Now</div>
+    <span class="section-tag tag-live">● Live</span>
+  </div>
+  <div id="live-grid">
+    <div class="loading-grid">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TODAY SECTION -->
+<div class="section" id="today">
+  <div class="section-header">
+    <div class="section-title">Today's Matches</div>
+    <span class="section-tag tag-upcoming">Upcoming</span>
+  </div>
+  <div id="today-grid">
+    <div class="loading-grid">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-section" id="pricing">
+  <div class="pricing-title">Simple Pricing</div>
+  <div class="pricing-subtitle">Cancel anytime. No hidden fees. Watch on any device.</div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">$0</div>
+      <div class="plan-period">forever</div>
+      <ul class="plan-features">
+        <li>SD streams only</li>
+        <li>1 device at a time</li>
+        <li>Basic sports</li>
+        <li>Ads included</li>
+      </ul>
+    </div>
+    <div class="price-card featured">
+      <div class="price-tag">Most Popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$9</div>
+      <div class="plan-period">per month</div>
+      <ul class="plan-features">
+        <li>HD & 4K streams</li>
+        <li>2 devices at a time</li>
+        <li>All sports</li>
+        <li>No ads</li>
+        <li>DVR & replays</li>
+      </ul>
+    </div>
+    <div class="price-card">
+      <div class="plan-name">Ultimate</div>
+      <div class="plan-price">$19</div>
+      <div class="plan-period">per month</div>
+      <ul class="plan-features">
+        <li>4K Ultra + multi-stream</li>
+        <li>5 devices at a time</li>
+        <li>All sports + PPV</li>
+        <li>No ads</li>
+        <li>Early access features</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2025 SportFlix · All streams via third-party sources</div>
+  <div style="display:flex;gap:1.5rem;">
+    <a style="color:var(--muted);text-decoration:none;font-size:12px;">Privacy</a>
+    <a style="color:var(--muted);text-decoration:none;font-size:12px;">Terms</a>
+    <a style="color:var(--muted);text-decoration:none;font-size:12px;">DMCA</a>
+    <a style="color:var(--muted);text-decoration:none;font-size:12px;">Discord</a>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay modal-hidden" id="modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Loading...</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="player-wrap">
+      <div class="player-placeholder" id="player-placeholder">
+        <div class="player-icon">▶</div>
+        <div>Select a stream below to start watching</div>
+      </div>
+      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    </div>
+    <div class="stream-list" id="stream-list">
+      <div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading streams...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://streamed.pk/api';
+const IMG = 'https://streamed.pk';
+let allLive = [], allToday = [], currentSport = 'all';
+
+async function fetchJSON(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+function formatTime(ms) {
+  const d = new Date(ms);
+  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function getBadgeUrl(badge) {
+  if (!badge) return null;
+  return `${IMG}/api/images/badge/${badge}`;
+}
+
+function getPosterUrl(poster) {
+  if (!poster) return null;
+  return `${IMG}/api/images/poster/${poster}`;
+}
+
+function renderTeamBadge(badge, name) {
+  if (badge) {
+    return `<img src="${getBadgeUrl(badge)}" onerror="this.style.display='none'" alt="${name}">`;
+  }
+  return `<span style="font-size:1.2rem;">${name ? name[0] : '?'}</span>`;
+}
+
+function categoryEmoji(cat) {
+  const map = {football:'⚽',basketball:'🏀',tennis:'🎾',mma:'🥊',baseball:'⚾',hockey:'🏒',motorsport:'🏎','american-football':'🏈'};
+  return map[cat] || '🏅';
+}
+
+function makeCard(match, isLive) {
+  const home = match.teams?.home;
+  const away = match.teams?.away;
+  const hasTeams = home || away;
+  const time = formatTime(match.date);
+  const srcCount = match.sources?.length || 0;
+
+  return `
+  <div class="match-card" onclick="openMatch('${match.id}', '${encodeURIComponent(match.title)}', ${JSON.stringify(match.sources).replace(/"/g,"'")})">
+    <div class="card-overlay"></div>
+    <div class="card-header">
+      <span class="card-category">${categoryEmoji(match.category)} ${match.category}</span>
+      ${isLive
+        ? `<span class="live-badge"><span class="live-dot"></span>LIVE</span>`
+        : `<span class="upcoming-badge">${time}</span>`}
+    </div>
+    ${hasTeams ? `
+    <div class="card-teams">
+      <div class="team">
+        <div class="team-badge-wrap">${renderTeamBadge(home?.badge, home?.name)}</div>
+        <div class="team-name">${home?.name || '?'}</div>
+      </div>
+      <div class="vs-block">
+        <div class="vs-text">VS</div>
+        ${!isLive ? `<div class="vs-time">${time}</div>` : ''}
+      </div>
+      <div class="team">
+        <div class="team-badge-wrap">${renderTeamBadge(away?.badge, away?.name)}</div>
+        <div class="team-name">${away?.name || '?'}</div>
+      </div>
+    </div>
+    ` : `
+    <div style="padding:12px 14px 14px;font-size:13px;font-weight:500;line-height:1.3;color:var(--text);">${match.title}</div>
+    `}
+    <div class="card-footer">
+      <span class="stream-count">${srcCount} stream${srcCount!==1?'s':''} available</span>
+      <span class="watch-btn">Watch ▶</span>
+    </div>
+  </div>`;
+}
+
+function renderGrid(matches, el, isLive) {
+  if (!matches || matches.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="big">🔍</div><p>No matches found for this filter right now.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="match-grid">${matches.map(m => makeCard(m, isLive)).join('')}</div>`;
+}
+
+function filterSport(sport, btn) {
+  currentSport = sport;
+  document.querySelectorAll('.sport-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const filterFn = m => sport === 'all' || m.category === sport;
+  renderGrid(allLive.filter(filterFn), document.getElementById('live-grid'), true);
+  renderGrid(allToday.filter(filterFn), document.getElementById('today-grid'), false);
+}
+
+async function openMatch(id, titleEnc, sources) {
+  const title = decodeURIComponent(titleEnc);
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading streams...</div>';
+  document.getElementById('player-placeholder').style.display = 'flex';
+  document.getElementById('player-iframe').style.display = 'none';
+  document.getElementById('modal').classList.remove('modal-hidden');
+
+  const src = Array.isArray(sources) ? sources : JSON.parse(sources.replace(/'/g,'"'));
+  if (!src || src.length === 0) {
+    document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);">No streams available</div>';
+    return;
+  }
+
+  let allStreams = [];
+  for (const s of src.slice(0, 3)) {
+    const data = await fetchJSON(`${API}/stream/${s.source}/${s.id}`);
+    if (data && Array.isArray(data)) {
+      data.forEach(st => allStreams.push({...st, sourceName: s.source}));
+    }
+  }
+
+  if (allStreams.length === 0) {
+    document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);">Streams not available right now</div>';
+    return;
+  }
+
+  const btns = allStreams.slice(0, 8).map((st, i) =>
+    `<button class="stream-btn${i===0?' active':''}" onclick="loadStream(this,'${encodeURIComponent(st.embedUrl)}')">${st.language || 'Stream'} ${st.streamNo} ${st.hd?'· HD':''}</button>`
+  ).join('');
+  document.getElementById('stream-list').innerHTML = btns;
+
+  if (allStreams[0]?.embedUrl) loadStream(null, encodeURIComponent(allStreams[0].embedUrl), true);
+}
+
+function loadStream(btn, urlEnc, silent) {
+  if (!silent) {
+    document.querySelectorAll('.stream-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
+  const url = decodeURIComponent(urlEnc);
+  const iframe = document.getElementById('player-iframe');
+  iframe.src = url;
+  iframe.style.display = 'block';
+  document.getElementById('player-placeholder').style.display = 'none';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('modal-hidden');
+  document.getElementById('player-iframe').src = '';
+  document.getElementById('player-iframe').style.display = 'none';
+  document.getElementById('player-placeholder').style.display = 'flex';
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+async function init() {
+  const [live, today] = await Promise.all([
+    fetchJSON(`${API}/matches/live`),
+    fetchJSON(`${API}/matches/all-today`)
+  ]);
+
+  allLive = live || [];
+  allToday = (today || []).filter(m => !allLive.find(l => l.id === m.id));
+
+  document.getElementById('stat-live').textContent = allLive.length;
+  document.getElementById('stat-today').textContent = allLive.length + allToday.length;
+
+  renderGrid(allLive, document.getElementById('live-grid'), true);
+  renderGrid(allToday, document.getElementById('today-grid'), false);
+}
+
+init();
+</script>
+</body>
+</html>
