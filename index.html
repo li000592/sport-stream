@@ -147,19 +147,38 @@
   /* HERO */
   .hero {
     position: relative;
-    background: linear-gradient(135deg, #0a0a0f 0%, #1a0510 50%, #0a0a0f 100%);
-    padding: 3rem 2rem 2rem;
+    background-image: url('https://m.media-amazon.com/images/S/sonata-images-prod/CA_NBA_2026Playoffs_Sportsnet_Evergreen/61a3261f-d55d-4d24-98ff-fe9e6f01db4a._SX3840_FMjpg_.jpeg');
+    background-size: cover;
+    background-position: center 20%;
+    padding: 6rem 2rem 4rem;
     overflow: hidden;
+    min-height: 480px;
+    display: flex;
+    align-items: center;
+    transition: background-image 0.5s ease;
   }
   .hero::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at 30% 50%, rgba(232,23,58,0.12) 0%, transparent 60%);
+    background: linear-gradient(to right, rgba(10,10,15,1) 0%, rgba(10,10,15,0.8) 30%, transparent 100%),
+                linear-gradient(to top, rgba(10,10,15,1) 0%, transparent 40%);
+    z-index: 1;
   }
   .hero-inner {
     position: relative;
-    max-width: 900px;
+    max-width: 800px;
+    z-index: 2;
+  }
+  .hero-title-art {
+    max-width: 450px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title-art img {
+    width: 100%;
+    max-height: 140px;
+    object-fit: contain;
+    object-position: left;
   }
   .hero-badge {
     display: inline-flex;
@@ -185,18 +204,6 @@
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
-  }
-
-  .hero h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 6vw, 4rem);
-    letter-spacing: 3px;
-    line-height: 1;
-    margin-bottom: 0.75rem;
-  }
-  .hero h1 em {
-    color: var(--red);
-    font-style: normal;
   }
 
   .hero p {
@@ -672,14 +679,16 @@
 </nav>
 
 <!-- HERO -->
-<div class="hero">
+<div class="hero" id="hero-section">
   <div class="hero-inner">
     <div class="hero-badge">
       <span class="live-dot"></span>
-      Live Sports Streaming
+      Live NBA Coverage
     </div>
-    <h1>Watch Every<br><em>Game, Live.</em></h1>
-    <p>HD streams for football, basketball, tennis, MMA and more. No cable required. No blackouts. No excuses.</p>
+    <div class="hero-title-art">
+      <img src="https://m.media-amazon.com/images/S/sonata-images-prod/CA_NBA_2026Playoffs_Sportsnet_Evergreen/beefb8a4-ffda-4658-acd5-abc554310f1e._BR-6_AC_SX1000_FMpng_.png" alt="NBA" id="hero-art-img">
+    </div>
+    <p id="hero-desc">Watch every game of the 2026 NBA Playoffs live in HD. No blackouts, no cable required. Stream on any device.</p>
     <div class="hero-ctas">
       <button class="btn-hero" onclick="document.getElementById('live').scrollIntoView({behavior:'smooth'})">▶ Watch Now</button>
     </div>
@@ -764,7 +773,10 @@
   <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title" id="modal-title">Loading...</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div style="display:flex; gap:8px;">
+        <button class="modal-close" onclick="refreshMatch()" title="Refresh Sources">🔄</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
     </div>
     <div class="player-wrap">
       <div class="ad-shield" id="ad-shield" onclick="this.style.display='none'"></div>
@@ -772,7 +784,7 @@
         <div class="player-icon">▶</div>
         <div>Select a stream below to start watching</div>
       </div>
-      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"></iframe>
+      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
     </div>
     <div class="stream-list" id="stream-list">
       <div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading streams...</div>
@@ -784,6 +796,7 @@
 const API = 'https://streamed.pk/api';
 const IMG = 'https://streamed.pk';
 let allLive = [], allToday = [], currentSport = 'all';
+let currentMatchData = null; // Store for refresh
 
 async function fetchJSON(url) {
   try {
@@ -914,8 +927,10 @@ function filterSport(sport, btn) {
 
 async function openMatch(id, titleEnc, sources) {
   const title = decodeURIComponent(titleEnc);
+  currentMatchData = { id, titleEnc, sources }; // For refresh
+
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading streams...</div>';
+  document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading backup streams...</div>';
   document.getElementById('player-placeholder').style.display = 'flex';
   document.getElementById('player-iframe').style.display = 'none';
   document.getElementById('modal').classList.remove('modal-hidden');
@@ -926,25 +941,37 @@ async function openMatch(id, titleEnc, sources) {
     return;
   }
 
-  let allStreams = [];
-  for (const s of src.slice(0, 3)) {
-    const data = await fetchJSON(`${API}/stream/${s.source}/${s.id}`);
-    if (data && Array.isArray(data)) {
-      data.forEach(st => allStreams.push({...st, sourceName: s.source}));
-    }
-  }
+  // Parallel fetching of top 5 sources for maximum speed and variety
+  const streamPromises = src.slice(0, 5).map(s => 
+    fetchJSON(`${API}/stream/${s.source}/${s.id}`).then(data => 
+      Array.isArray(data) ? data.map(st => ({...st, sourceName: s.source})) : []
+    )
+  );
+
+  const results = await Promise.all(streamPromises);
+  const allStreams = results.flat();
 
   if (allStreams.length === 0) {
-    document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);">Streams not available right now</div>';
+    document.getElementById('stream-list').innerHTML = '<div style="font-size:12px;color:var(--muted);">Streams not available right now. Try Refresh 🔄</div>';
     return;
   }
 
-  const btns = allStreams.slice(0, 8).map((st, i) =>
-    `<button class="stream-btn${i===0?' active':''}" onclick="loadStream(this,'${encodeURIComponent(st.embedUrl)}')">${st.language || 'Stream'} ${st.streamNo} ${st.hd?'· HD':''}</button>`
+  const btns = allStreams.slice(0, 12).map((st, i) =>
+    `<button class="stream-btn${i===0?' active':''}" onclick="loadStream(this,'${encodeURIComponent(st.embedUrl)}')">${st.language || 'Backup'} ${st.streamNo} ${st.hd?'· HD':''}</button>`
   ).join('');
-  document.getElementById('stream-list').innerHTML = btns;
+  
+  document.getElementById('stream-list').innerHTML = `
+    <div style="width:100%;font-size:11px;color:var(--muted);margin-bottom:4px;">💡 Pro-tip: If a stream buffers, try another source below.</div>
+    ${btns}
+  `;
 
   if (allStreams[0]?.embedUrl) loadStream(null, encodeURIComponent(allStreams[0].embedUrl), true);
+}
+
+function refreshMatch() {
+  if (currentMatchData) {
+    openMatch(currentMatchData.id, currentMatchData.titleEnc, currentMatchData.sources);
+  }
 }
 
 function loadStream(btn, urlEnc, silent) {
@@ -1030,6 +1057,27 @@ async function init() {
 
   renderGrid(allLive, document.getElementById('live-grid'), true);
   renderGrid(allToday, document.getElementById('today-grid'), false);
+
+  // Dynamic High-Res Hero Assets (Amazon Sources)
+  const heroAssets = [
+    {
+      bg: 'https://m.media-amazon.com/images/S/sonata-images-prod/CA_NBA_2026Playoffs_Sportsnet_Evergreen/61a3261f-d55d-4d24-98ff-fe9e6f01db4a._SX3840_FMjpg_.jpeg',
+      art: 'https://m.media-amazon.com/images/S/sonata-images-prod/CA_NBA_2026Playoffs_Sportsnet_Evergreen/beefb8a4-ffda-4658-acd5-abc554310f1e._BR-6_AC_SX2000_FMpng_.png'
+    },
+    {
+      bg: 'https://m.media-amazon.com/images/S/sonata-images-prod/TSN_NBA_Playoffs_2026_Evergreen/42b21cd9-b62d-4d0b-a349-bd9939ac62e9._SX3840_FMjpg_.jpeg',
+      art: 'https://m.media-amazon.com/images/S/sonata-images-prod/TSN_NBA_Playoffs_2026_Evergreen/e69b0833-381e-4775-9ffc-79048eb1d88f._BR-6_AC_SX2000_FMpng_.png'
+    }
+  ];
+
+  const hero = document.getElementById('hero-section');
+  const heroArt = document.getElementById('hero-art-img');
+  
+  // Randomly pick one of the ultra-high-res sets
+  const picked = heroAssets[Math.floor(Math.random() * heroAssets.length)];
+  
+  hero.style.backgroundImage = `url('${picked.bg}')`;
+  heroArt.src = picked.art;
 }
 
 init();
