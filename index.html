@@ -6,6 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SportFlix">
 <meta name="theme-color" content="#0a0a0f">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233483.png">
@@ -116,15 +117,16 @@
   .bottom-nav-icon { font-size: 20px; }
 
   /* RESPONSIVE */
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
+    .match-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
     nav { padding: 0 1rem; justify-content: center; }
     .nav-links, .nav-right { display: none; }
     .bottom-nav { display: flex; }
     .hero { padding: 4rem 1.5rem 2rem; }
-    .hero h1 { font-size: 2.2rem; letter-spacing: 2px; }
-    .hero p { font-size: 13px; max-width: 100%; }
-    .section { padding: 1rem 1.25rem; }
-    .match-grid { grid-template-columns: 1fr; gap: 10px; }
+    .match-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     body { padding-bottom: 80px; }
     
     /* Fullscreen Modal on Mobile */
@@ -140,8 +142,18 @@
     .stream-list { flex: 1; overflow-y: auto; }
   }
 
-  @media (min-width: 769px) and (max-width: 1024px) {
-    .match-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 768px) {
+    nav { padding: 0 1rem; justify-content: center; }
+    .nav-links, .nav-right { display: none; }
+    .bottom-nav { display: flex; }
+  }
+
+  @media (min-width: 769px) and (max-width: 1200px) {
+    .match-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (min-width: 1201px) {
+    .match-grid { grid-template-columns: repeat(5, 1fr); }
   }
 
   /* HERO */
@@ -345,6 +357,11 @@
     transform: translateY(-2px);
     border-color: rgba(255,255,255,0.15);
   }
+  /* iPad Touch Feedback */
+  .match-card:active, .btn-hero:active, .stream-btn:active, .modal-close:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+  }
   .match-card:hover .card-overlay { opacity: 1; }
 
   .card-overlay {
@@ -492,6 +509,23 @@
     gap: 4px;
   }
 
+  .remind-btn {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 0.5px solid var(--border);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .remind-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .remind-btn.active { color: var(--gold); border-color: var(--gold); }
+
   /* LOADING / ERROR */
   .loading-grid {
     display: grid;
@@ -542,10 +576,14 @@
   .modal-box {
     background: var(--bg2);
     border: 0.5px solid var(--border);
-    border-radius: 10px;
-    width: 100%;
-    max-width: 700px;
-    overflow: hidden;
+    border-radius: 12px;
+    width: 95%;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   }
   .modal-header {
     padding: 16px 20px;
@@ -669,10 +707,9 @@
 <nav>
   <div class="logo">SPORT<span>FLIX</span></div>
   <ul class="nav-links">
-    <li><a class="active">Live Now</a></li>
-    <li><a>Schedule</a></li>
-    <li><a>Replays</a></li>
-    <li><a>Leagues</a></li>
+    <li><a class="nav-link active" onclick="document.getElementById('live').scrollIntoView({behavior:'smooth'}); setNavActive(this)">Live Now</a></li>
+    <li><a class="nav-link" onclick="document.getElementById('today').scrollIntoView({behavior:'smooth'}); setNavActive(this)">Schedule</a></li>
+    <li><a class="nav-link" onclick="document.getElementById('sport-filter').scrollIntoView({behavior:'smooth'}); setNavActive(this)">Sports</a></li>
   </ul>
   <div class="nav-right">
   </div>
@@ -774,17 +811,18 @@
     <div class="modal-header">
       <div class="modal-title" id="modal-title">Loading...</div>
       <div style="display:flex; gap:8px;">
+        <button class="modal-close" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
         <button class="modal-close" onclick="refreshMatch()" title="Refresh Sources">🔄</button>
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
     </div>
-    <div class="player-wrap">
+    <div class="player-wrap" id="player-container">
       <div class="ad-shield" id="ad-shield" onclick="this.style.display='none'"></div>
       <div class="player-placeholder" id="player-placeholder">
         <div class="player-icon">▶</div>
         <div>Select a stream below to start watching</div>
       </div>
-      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
     </div>
     <div class="stream-list" id="stream-list">
       <div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading streams...</div>
@@ -892,9 +930,11 @@ function makeCard(match, isLive) {
       `}
       <div class="card-footer">
         <span class="stream-count">${srcCount} stream${srcCount!==1?'s':''} available</span>
-        <span class="watch-btn">Watch ▶</span>
-      </div>
-    </div>
+        ${isLive 
+          ? `<span class="watch-btn">Watch ▶</span>`
+          : `<button class="remind-btn" onclick="event.stopPropagation(); setReminder('${match.id}', '${match.title}', ${match.date})">🔔 Remind</button>`
+        }
+      </div>    </div>
   </div>`;
 }
 
@@ -961,11 +1001,71 @@ async function openMatch(id, titleEnc, sources) {
   ).join('');
   
   document.getElementById('stream-list').innerHTML = `
-    <div style="width:100%;font-size:11px;color:var(--muted);margin-bottom:4px;">💡 Pro-tip: If a stream buffers, try another source below.</div>
+    <div id="stream-tip" style="width:100%;font-size:11px;color:var(--muted);margin-bottom:4px;">💡 Pro-tip: Unmute manually if needed. If a stream buffers, try another source.</div>
     ${btns}
   `;
 
   if (allStreams[0]?.embedUrl) loadStream(null, encodeURIComponent(allStreams[0].embedUrl), true);
+}
+
+function toggleFullscreen() {
+  const container = document.getElementById('player-container');
+  if (!document.fullscreenElement) {
+    container.requestFullscreen().catch(err => {
+      console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function setReminder(id, title, date) {
+  // 1. Browser Notification Check
+  if ("Notification" in window) {
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") {
+        new Notification("SportFlix Reminder Set!", {
+          body: `We'll try to notify you when ${title} starts.`,
+          icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png'
+        });
+      }
+    });
+  }
+
+  // 2. Reliable iPad Fallback: Add to Calendar (.ics)
+  const startTime = new Date(date);
+  const endTime = new Date(date + 2 * 3600000); // Assume 2 hours
+  
+  const formatDate = (d) => d.toISOString().replace(/-|:|\.\d+/g, '');
+  
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'BEGIN:VEVENT',
+    `URL:${window.location.href}`,
+    `DTSTART:${formatDate(startTime)}`,
+    `DTEND:${formatDate(endTime)}`,
+    `SUMMARY:🏀 SportFlix: ${title}`,
+    `DESCRIPTION:Watch the game live on SportFlix: ${window.location.href}`,
+    'BEGIN:VALARM',
+    'TRIGGER:-PT10M',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Game starting in 10 minutes!',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\\n');
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `${title.replace(/\\s+/g, '_')}.ics`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  alert(`✅ Reminder set for ${title}!\\n\\nA calendar file has been generated to ensure you get a notification on your iPad/iPhone.`);
 }
 
 function refreshMatch() {
@@ -974,12 +1074,22 @@ function refreshMatch() {
   }
 }
 
+let loadWatchdog = null;
+
 function loadStream(btn, urlEnc, silent) {
+  if (loadWatchdog) clearTimeout(loadWatchdog);
+  
   if (!silent) {
     document.querySelectorAll('.stream-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
   }
-  const url = decodeURIComponent(urlEnc);
+  let url = decodeURIComponent(urlEnc);
+  
+  // iPad/iOS: Force HTTPS to prevent 'Mixed Content' blocking
+  if (window.location.protocol === 'https:' && url.startsWith('http:')) {
+    url = url.replace('http:', 'https:');
+  }
+
   const iframe = document.getElementById('player-iframe');
   iframe.src = url;
   iframe.style.display = 'block';
@@ -988,6 +1098,15 @@ function loadStream(btn, urlEnc, silent) {
   // Show ad shield to catch first-click popups
   const shield = document.getElementById('ad-shield');
   if (shield) shield.style.display = 'block';
+
+  // Watchdog: If stream doesn't load in 8s, show helper
+  loadWatchdog = setTimeout(() => {
+    const tip = document.getElementById('stream-tip');
+    if (tip) {
+      tip.innerHTML = '⚠️ Stream taking too long? <span style="color:var(--red); text-decoration:underline; cursor:pointer;" onclick="refreshMatch()">Try refreshing sources</span> or pick a different Backup below.';
+      tip.style.color = '#ff6b87';
+    }
+  }, 8000);
 }
 
 // Anti-Ad / Popup Blocker
@@ -1017,9 +1136,27 @@ function closeModal() {
   document.getElementById('player-placeholder').style.display = 'flex';
 }
 
-function setActive(el) {
+function setNavActive(el) {
+  // Clear all top nav
+  document.querySelectorAll('.nav-link').forEach(i => i.classList.remove('active'));
+  // Clear all bottom nav
   document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+  
+  // Highlight the one clicked (and its counterpart if applicable)
   el.classList.add('active');
+  
+  // Cross-highlight based on text content
+  const text = el.textContent.trim();
+  document.querySelectorAll('.nav-link, .bottom-nav-item span').forEach(link => {
+    if (link.textContent.trim() === text) {
+      const parent = link.closest('.nav-link') || link.closest('.bottom-nav-item');
+      if (parent) parent.classList.add('active');
+    }
+  });
+}
+
+function setActive(el) {
+  setNavActive(el);
 }
 
 // Service Worker Registration
