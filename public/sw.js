@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sportflix-v2';
+const CACHE_NAME = 'sportflix-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -32,9 +32,24 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Network-first strategy for index.html to ensure updates
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
     })
   );
+});
+
+// Listen for the message to skip waiting
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
