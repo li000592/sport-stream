@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sportflix-v3';
+const CACHE_NAME = 'sportflix-v5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -10,7 +10,8 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      // Use addAll with caution, if one fails, the whole thing fails
+      return cache.addAll(ASSETS).catch(err => console.warn('SW: Cache addAll partial failure', err));
     })
   );
 });
@@ -32,7 +33,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Network-first strategy for index.html to ensure updates
+  // Only handle GET requests and exclude browser extensions or chrome-extension URLs
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) return;
+
+  // Network-first strategy for navigation to ensure updates
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -47,7 +51,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Listen for the message to skip waiting
 self.addEventListener('message', (event) => {
   if (event.data === 'skipWaiting') {
     self.skipWaiting();
