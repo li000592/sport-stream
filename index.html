@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0f">
@@ -346,13 +347,33 @@
     opacity: 0;
     transition: opacity 0.2s;
     pointer-events: none;
+    z-index: 2;
   }
 
-  .card-header {
-    padding: 12px 14px 8px;
+  .match-poster-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--bg3);
+    overflow: hidden;
+  }
+  .match-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+  }
+  .match-card:hover .match-poster { transform: scale(1.05); }
+
+  .poster-overlay {
+    position: absolute;
+    inset: 0;
+    padding: 10px 12px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: flex-start;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent 50%);
+    z-index: 1;
   }
 
   .card-category {
@@ -360,7 +381,8 @@
     font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: var(--muted);
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   }
 
   .live-badge {
@@ -371,15 +393,21 @@
     font-weight: 700;
     letter-spacing: 1px;
     color: var(--live);
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
   }
   .upcoming-badge {
     font-size: 10px;
     color: var(--gold);
-    font-weight: 500;
+    font-weight: 600;
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 
   .card-teams {
-    padding: 8px 14px 14px;
+    padding: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -762,17 +790,36 @@ function formatTime(ms) {
 
 function getBadgeUrl(badge) {
   if (!badge) return null;
-  return `${IMG}/api/images/badge/${badge}`;
+  if (badge.startsWith('http')) return badge;
+  if (badge.startsWith('/')) return `${IMG}${badge}`;
+  
+  if (badge.length > 50) {
+    return `${IMG}/api/images/proxy/${badge}.webp`;
+  }
+  
+  const id = badge.includes('-badge') ? badge : `${badge}-badge`;
+  return `${IMG}/api/images/badge/${id}.webp`;
 }
 
-function getPosterUrl(poster) {
-  if (!poster) return null;
-  return `${IMG}/api/images/poster/${poster}`;
+function getPosterUrl(match) {
+  if (match.poster) {
+    if (match.poster.startsWith('http')) return match.poster;
+    if (match.poster.startsWith('/')) return `${IMG}${match.poster}`;
+    return `${IMG}/api/images/proxy/${match.poster}.webp`;
+  }
+  
+  const home = match.teams?.home;
+  const away = match.teams?.away;
+  if (!home?.badge || !away?.badge) return null;
+  
+  const hId = home.badge.replace('-badge', '');
+  const aId = away.badge.replace('-badge', '');
+  return `${IMG}/api/images/poster/${hId}/${aId}.webp`;
 }
 
 function renderTeamBadge(badge, name) {
   if (badge) {
-    return `<img src="${getBadgeUrl(badge)}" onerror="this.style.display='none'" alt="${name}">`;
+    return `<img src="${getBadgeUrl(badge)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" alt="${name}">`;
   }
   return `<span style="font-size:1.2rem;">${name ? name[0] : '?'}</span>`;
 }
@@ -788,37 +835,42 @@ function makeCard(match, isLive) {
   const hasTeams = home || away;
   const time = formatTime(match.date);
   const srcCount = match.sources?.length || 0;
+  const poster = getPosterUrl(match);
 
   return `
   <div class="match-card" onclick="openMatch('${match.id}', '${encodeURIComponent(match.title)}', ${JSON.stringify(match.sources).replace(/"/g,"'")})">
     <div class="card-overlay"></div>
-    <div class="card-header">
-      <span class="card-category">${categoryEmoji(match.category)} ${match.category}</span>
-      ${isLive
-        ? `<span class="live-badge"><span class="live-dot"></span>LIVE</span>`
-        : `<span class="upcoming-badge">${time}</span>`}
-    </div>
-    ${hasTeams ? `
-    <div class="card-teams">
-      <div class="team">
-        <div class="team-badge-wrap">${renderTeamBadge(home?.badge, home?.name)}</div>
-        <div class="team-name">${home?.name || '?'}</div>
-      </div>
-      <div class="vs-block">
-        <div class="vs-text">VS</div>
-        ${!isLive ? `<div class="vs-time">${time}</div>` : ''}
-      </div>
-      <div class="team">
-        <div class="team-badge-wrap">${renderTeamBadge(away?.badge, away?.name)}</div>
-        <div class="team-name">${away?.name || '?'}</div>
+    <div class="match-poster-wrap">
+      <img src="${poster}" class="match-poster" referrerpolicy="no-referrer" onerror="this.style.opacity='0'">
+      <div class="poster-overlay">
+        <span class="card-category">${categoryEmoji(match.category)} ${match.category}</span>
+        ${isLive
+          ? `<span class="live-badge"><span class="live-dot"></span>LIVE</span>`
+          : `<span class="upcoming-badge">${time}</span>`}
       </div>
     </div>
-    ` : `
-    <div style="padding:12px 14px 14px;font-size:13px;font-weight:500;line-height:1.3;color:var(--text);">${match.title}</div>
-    `}
-    <div class="card-footer">
-      <span class="stream-count">${srcCount} stream${srcCount!==1?'s':''} available</span>
-      <span class="watch-btn">Watch ▶</span>
+    <div class="card-content">
+      ${hasTeams ? `
+      <div class="card-teams">
+        <div class="team">
+          <div class="team-badge-wrap">${renderTeamBadge(home?.badge, home?.name)}</div>
+          <div class="team-name">${home?.name || '?'}</div>
+        </div>
+        <div class="vs-block">
+          <div class="vs-text">VS</div>
+        </div>
+        <div class="team">
+          <div class="team-badge-wrap">${renderTeamBadge(away?.badge, away?.name)}</div>
+          <div class="team-name">${away?.name || '?'}</div>
+        </div>
+      </div>
+      ` : `
+      <div style="padding:12px 14px 0;font-size:13px;font-weight:500;line-height:1.3;color:var(--text);">${match.title}</div>
+      `}
+      <div class="card-footer">
+        <span class="stream-count">${srcCount} stream${srcCount!==1?'s':''} available</span>
+        <span class="watch-btn">Watch ▶</span>
+      </div>
     </div>
   </div>`;
 }
