@@ -576,6 +576,15 @@
     width: 100%;
     height: 100%;
     border: none;
+    z-index: 1;
+  }
+  .ad-shield {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    cursor: pointer;
+    display: none;
+    background: transparent;
   }
   .player-placeholder {
     position: absolute;
@@ -758,11 +767,12 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="player-wrap">
+      <div class="ad-shield" id="ad-shield" onclick="this.style.display='none'"></div>
       <div class="player-placeholder" id="player-placeholder">
         <div class="player-icon">▶</div>
         <div>Select a stream below to start watching</div>
       </div>
-      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+      <iframe id="player-iframe" style="display:none;" allowfullscreen allow="autoplay; encrypted-media" sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"></iframe>
     </div>
     <div class="stream-list" id="stream-list">
       <div style="font-size:12px;color:var(--muted);padding:4px 0;">Loading streams...</div>
@@ -947,7 +957,31 @@ function loadStream(btn, urlEnc, silent) {
   iframe.src = url;
   iframe.style.display = 'block';
   document.getElementById('player-placeholder').style.display = 'none';
+  
+  // Show ad shield to catch first-click popups
+  const shield = document.getElementById('ad-shield');
+  if (shield) shield.style.display = 'block';
 }
+
+// Anti-Ad / Popup Blocker
+(function() {
+  const originalOpen = window.open;
+  window.open = function() { 
+    console.warn("Blocked a popup attempt."); 
+    return null; 
+  };
+  
+  // Prevent common ad-tech click hijacking
+  document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A' && e.target.target === '_blank') {
+      const href = e.target.href || '';
+      if (href.includes('ads') || href.includes('track') || href.includes('pop')) {
+        e.preventDefault();
+        console.warn("Blocked a suspicious link click.");
+      }
+    }
+  }, true);
+})();
 
 function closeModal() {
   document.getElementById('modal').classList.add('modal-hidden');
