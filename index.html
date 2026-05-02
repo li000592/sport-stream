@@ -880,7 +880,17 @@ function renderGrid(matches, el, isLive) {
     el.innerHTML = `<div class="empty-state"><div class="big">🔍</div><p>No matches found for this filter right now.</p></div>`;
     return;
   }
-  el.innerHTML = `<div class="match-grid">${matches.map(m => makeCard(m, isLive)).join('')}</div>`;
+
+  // Prioritize NBA / Basketball to the first row
+  const sorted = [...matches].sort((a, b) => {
+    const aIsBball = a.category === 'basketball' || a.title?.toLowerCase().includes('nba');
+    const bIsBball = b.category === 'basketball' || b.title?.toLowerCase().includes('nba');
+    if (aIsBball && !bIsBball) return -1;
+    if (!aIsBball && bIsBball) return 1;
+    return 0;
+  });
+
+  el.innerHTML = `<div class="match-grid">${sorted.map(m => makeCard(m, isLive)).join('')}</div>`;
 }
 
 function filterSport(sport, btn) {
